@@ -15,4 +15,5 @@ class TaskConfig:
     # redis配置信息
     REDIS_SERVER = "192.168.0.25"
     REDIS_PORT = 6379
+    REDIS_AUTH = 123456
     REDIS_DB = 0
