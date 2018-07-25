@@ -5,13 +5,17 @@
 # @File    : Main.py
 # @Desc    : 程序入口
 
+import Config as config
+
+config.initInstallComponent()
+
 import logging
-
-logging.basicConfig(level=logging.INFO)
-
 from src.config.RedisConfig import RedisConfig
 from src.config.TaskConfig import TaskConfig
+from src.task.TaskManager import TaskManager
 from src.util.IPUtil import IPUtil
+
+logging.basicConfig(**TaskConfig.LOGGING_CONFIG)
 
 
 def startTask(taskInstanceId):
@@ -45,7 +49,7 @@ def startTask(taskInstanceId):
     logging.info("添加任务ip列表 : %s" % taskIps)
 
 
-if __name__ == "__main__":
+def test():
     startTask(1)
     startTask(2)
     startTask(3)
@@ -56,3 +60,13 @@ if __name__ == "__main__":
     startTask(8)
     startTask(9)
     startTask(10)
+
+
+def main():
+    taskManager = TaskManager(1, 3)
+    taskManager.executeTaskManager()
+
+
+if __name__ == "__main__":
+    test()
+    main()

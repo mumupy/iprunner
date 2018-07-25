@@ -5,8 +5,9 @@
 # @File    : ZmapTask.py
 # @Desc    : zmap任务
 
-import os
 import logging
+import os
+
 from src.config.TaskConfig import TaskConfig
 
 logging.basicConfig(**TaskConfig.LOGGING_CONFIG)
@@ -14,18 +15,60 @@ logging.basicConfig(**TaskConfig.LOGGING_CONFIG)
 
 class ZmapTask:
 
-    def execute(self, port, ipFilePath):
+    def execute(self, port, ipFilePaths):
         """执行zmap任务"""
-        port, protocol, protocolName = str(port).split("_")
-        outpath = ipFilePath + "_zmap"
+        try:
+            port, protocol, protocolName = str(port).split("_")
+            outPaths, file_counter = [], 0
+            for ipFilePath in ipFilePaths:
+                outpath = ipFilePath + "_zmap"
+                command = ""
+                if protocol.upper() == "TCP":
+                    command = "zmap -p %s -i %s -o %s -w %s -c 10 -B 20M -T 4 " % (port, "ens33", outpath, ipFilePath)
+                elif protocol.upper() == "UDP":
+                    command = "zmap -p %s -i %s -o %s -w %s -c 10 -B 20M -T 4 -M udp --probe-args=file:%s" % (
+                        port, "ens33", outpath, ipFilePath, "")
+                else:
+                    continue
+                logging.info("执行zmap：" + command)
+                value = os.system(command)
+                logging.info("zmap执行结果 %s" % value)
+                outPaths.append(outpath)
+        except Exception as ex:
+            logging.error(ex)
+            outPaths = []
+        return outPaths
 
-        command = ""
-        if protocol.upper() == "TCP":
-            command = "zmap -p %s -i %s -o %s -w %s -c 10 -B 20M -T 4 " % (port, "ens33", outpath, ipFilePath)
-        elif protocol.upper() == "UDP":
-            command = "zmap -p %s -i %s -o %s -w %s -c 10 -B 20M -T 4 -M udp --probe-args=file:%s" % (
-                port, "ens33", outpath, ipFilePath, "")
-        logging.info("执行zmap：" + command)
-        # value = os.system(command)
-        logging.info("zmap执行结果:")
-        return outpath
+    def mergeZmapTask(self, zmapPaths, mergeCount=1000):
+        # 将多个zmap结果文件合并成一个文件
+        ipList, current_index, file_counter, merge_files = [], 0, 0, []
+        for zmapPath in zmapPaths:
+            zmap_dir, zmap_filename = os.path.split(zmapPath)
+            if not os.path.exists(zmapPath):
+                continue
+            file = open(zmapPath, "r")
+            ipList.extend(set(file.readlines()))
+            file.close()
+
+        if len(ipList) == 0:
+            return []
+
+        # 合并zmap文件列表
+        newMergeFileName = zmap_dir + "mzmap"
+        merge_files.append(newMergeFileName)
+        mergeZmapFile = open(newMergeFileName, "w")
+        for ip in ipList:
+            current_index += 1
+            if current_index >= mergeCount:
+                mergeZmapFile.close()
+                file_counter += 1
+                current_index = 0
+                newMergeFileName = zmap_dir + "mzmap_" + file_counter
+                merge_files.append(newMergeFileName)
+                mergeZmapFile = open(newMergeFileName, "w")
+            mergeZmapFile.write(ip + "\n")
+        mergeZmapFile.close()
+        # 去除最后一个空文件
+        if current_index == 0:
+            merge_files.remove(newMergeFileName)
+        return merge_files

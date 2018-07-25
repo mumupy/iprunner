@@ -76,15 +76,19 @@ class TaskAssign(threading.Thread):
             if current_index >= everyFileIpCount:
                 file.close()
                 file_counter += 1
+                current_index = 0
                 newFileName = port_dir + "ip_" + str(file_counter)
                 file = open(newFileName, "w")
                 ipFilePaths.append(newFileName)
             file.write(ip + "\n")
         file.close()
-        logging.info("任务分配器-任务[ %s ] 生成ip数据文件 %s" % (self.taskInstanceId, ipFilePath))
-        return ipFilePath
+        # 去除最后一个空文件
+        if current_index == 0:
+            ipFilePaths.remove(newFileName)
+        logging.info("任务分配器-任务[ %s ] 生成ip数据文件 %s" % (self.taskInstanceId, ipFilePaths))
+        return ipFilePaths
 
-    def executeTask(self, ports, ipFilePath, threadCount=10):
+    def executeTask(self, ports, ipFilePaths, threadCount=10):
         """执行任务"""
         thread_dict = {}
         current_thread_index = 0
@@ -98,11 +102,11 @@ class TaskAssign(threading.Thread):
         taskThreads = []
         for dictKey in thread_dict.keys():
             allocatePorts = thread_dict.get(dictKey)
-            taskExecution = TaskExecution(self.taskInfo, allocatePorts, ipFilePath)
+            taskExecution = TaskExecution(self.taskInfo, allocatePorts, ipFilePaths)
             taskExecution.start()
             taskThreads.append(taskExecution)
             logging.info("任务分配器-任务[ %s ] 执行子任务[ %d ] : 分配端口号：%s ip数据文件: %s" % (
-                self.taskInstanceId, len(taskThreads), allocatePorts, ipFilePath))
+                self.taskInstanceId, len(taskThreads), allocatePorts, ipFilePaths))
 
         # 等待所有的线程执行完毕 在继续
         for taskThread in taskThreads:
@@ -117,8 +121,8 @@ class TaskAssign(threading.Thread):
                 logging.info("任务分配器,任务 [ %s ] ，未分配端口号结束。" % self.taskInstanceId)
             else:
                 ips = self.getTaskIps()
-                ipFilePath = self.createIpFiles(ips, 1000)
-                self.executeTask(ports, ipFilePath, self.threadCount)
+                ipFilePaths = self.createIpFiles(ips, 1000)
+                self.executeTask(ports, ipFilePaths, self.threadCount)
         except StandardError as error:
             result = False
             logging.error(error)
