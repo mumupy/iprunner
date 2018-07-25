@@ -6,16 +6,26 @@
 # @Desc    : zmap任务
 
 import os
+import logging
+from src.config.TaskConfig import TaskConfig
+
+logging.basicConfig(**TaskConfig.LOGGING_CONFIG)
 
 
 class ZmapTask:
 
-    def execute(self, port_path):
+    def execute(self, port, ipFilePath):
         """执行zmap任务"""
+        port, protocol, protocolName = str(port).split("_")
+        outpath = ipFilePath + "_zmap"
 
-        port = int(os.path.split(port_path)[1])
-        outpath = port_path + "_zmap"
-        # zmap -p 80 -N 100 -i ens33 -o zmap.out 随机扫描
-        os.system("zmap -p %d -B 1M -i %s -o %s -w %s" % (port, "ens33", outpath, port_path))
-        file = open(outpath)
-        return list(file.readlines())
+        command = ""
+        if protocol.upper() == "TCP":
+            command = "zmap -p %s -i %s -o %s -w %s -c 10 -B 20M -T 4 " % (port, "ens33", outpath, ipFilePath)
+        elif protocol.upper() == "UDP":
+            command = "zmap -p %s -i %s -o %s -w %s -c 10 -B 20M -T 4 -M udp --probe-args=file:%s" % (
+                port, "ens33", outpath, ipFilePath, "")
+        logging.info("执行zmap：" + command)
+        # value = os.system(command)
+        logging.info("zmap执行结果:")
+        return outpath

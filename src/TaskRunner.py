@@ -9,7 +9,8 @@ from src.task.TaskManager import TaskManager
 
 
 def runner():
-    TaskManager().executeTaskManager()
+    taskManager = TaskManager(3, 3)
+    taskManager.executeTaskManager()
 
 
 if __name__ == "__main__":

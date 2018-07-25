@@ -4,3 +4,7 @@
 # @Author  : ganliang
 # @File    : MyModular.py
 # @Desc    : 我的模块
+
+
+mydict={"name":"lovecws","lover":"cws"}
+print(len(mydict.keys()))
