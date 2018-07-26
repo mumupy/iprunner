@@ -15,13 +15,23 @@ logging.basicConfig(**TaskConfig.LOGGING_CONFIG)
 
 class ZmapTask:
 
-    def execute(self, port, ipFilePaths):
+    def execute(self, portStr, ipFilePaths):
         """执行zmap任务"""
         try:
-            port, protocol, protocolName = str(port).split("_")
+            port, protocol, protocolName = str(portStr).split("_")
             outPaths, file_counter = [], 0
             for ipFilePath in ipFilePaths:
-                outpath = ipFilePath + "_zmap"
+                ipFileDir, ipFileName = os.path.split(ipFilePath)
+                zmapDir = ipFileDir + "/zmap/"
+
+                if not os.path.exists(zmapDir):
+                    os.makedirs(zmapDir)
+                if file_counter == 0:
+                    outpath = zmapDir + portStr + ".csv"
+                else:
+                    outpath = zmapDir + portStr + "_" + str(file_counter) + ".csv"
+
+                file_counter += 1
                 command = ""
                 if protocol.upper() == "TCP":
                     command = "zmap -p %s -i %s -o %s -w %s -c 10 -B 20M -T 4 " % (port, "ens33", outpath, ipFilePath)
@@ -30,6 +40,7 @@ class ZmapTask:
                         port, "ens33", outpath, ipFilePath, "")
                 else:
                     continue
+
                 logging.info("执行zmap：" + command)
                 value = os.system(command)
                 logging.info("zmap执行结果 %s" % value)

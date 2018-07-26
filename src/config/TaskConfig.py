@@ -9,8 +9,8 @@ import logging
 
 class TaskConfig:
     LOGGING_CONFIG = {
-        #"filename": "config.log",
-        #"filemode": "w",
+        # "filename": "config.log",
+        # "filemode": "w",
         "format": "%(asctime)s-%(name)s-%(levelname)s-%(message)s",
         "level": logging.INFO
     }
@@ -23,9 +23,9 @@ class TaskConfig:
     TASK_TEMP_DIR = "/data/taskinstance/"
 
     # redis配置信息
-    REDIS_SERVER = "192.168.0.25"
-    #REDIS_SERVER = "172.31.134.216"
+    # REDIS_SERVER = "192.168.0.25"
+    REDIS_SERVER = "172.31.134.216"
     REDIS_PORT = 6379
-    REDIS_AUTH = 123456
-    #REDIS_AUTH = None
+    # REDIS_AUTH = 123456
+    REDIS_AUTH = None
     REDIS_DB = 1

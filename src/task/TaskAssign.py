@@ -63,11 +63,11 @@ class TaskAssign(threading.Thread):
 
     def createIpFiles(self, ips, everyFileIpCount=1000):
         """每一个任务只需要创建一个ip文件即可，其他的端口号可以复用这个IP列表文件"""
-        port_dir = self.taskConfig.TASK_TEMP_DIR + self.taskInstanceId + "/"
-        if not os.path.exists(port_dir):
-            os.makedirs(port_dir)
+        taskInstanceDir = self.taskConfig.TASK_TEMP_DIR + self.taskInstanceId + "/"
+        if not os.path.exists(taskInstanceDir):
+            os.makedirs(taskInstanceDir)
 
-        current_index, file_counter, ipFilePaths, ipFilePath = 0, 0, [], port_dir + "ip"
+        current_index, file_counter, ipFilePaths, ipFilePath = 0, 0, [], taskInstanceDir + "ip"+ ".csv"
         ipFilePaths.append(ipFilePath)
         file = open(ipFilePath, "w")
         for ip in ips:
@@ -77,7 +77,7 @@ class TaskAssign(threading.Thread):
                 file.close()
                 file_counter += 1
                 current_index = 0
-                newFileName = port_dir + "ip_" + str(file_counter)
+                newFileName = taskInstanceDir + "ip_" + str(file_counter)+ ".csv"
                 file = open(newFileName, "w")
                 ipFilePaths.append(newFileName)
             file.write(ip + "\n")

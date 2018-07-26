@@ -14,8 +14,15 @@ class RedisConfig:
 
     def connection(self):
         """获取redis链接"""
-        connection = redis.StrictRedis(host=TaskConfig.REDIS_SERVER, port=TaskConfig.REDIS_PORT, db=TaskConfig.REDIS_DB,
-                                       password=TaskConfig.REDIS_AUTH)
+
+        connection = None
+        if TaskConfig.REDIS_AUTH:
+            connection = redis.StrictRedis(host=TaskConfig.REDIS_SERVER, port=TaskConfig.REDIS_PORT,
+                                           db=TaskConfig.REDIS_DB,
+                                           password=TaskConfig.REDIS_AUTH)
+        else:
+            connection = redis.StrictRedis(host=TaskConfig.REDIS_SERVER, port=TaskConfig.REDIS_PORT,
+                                           db=TaskConfig.REDIS_DB)
         return connection
 
     def close(self, connection):
