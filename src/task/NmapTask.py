@@ -15,15 +15,21 @@ logging.basicConfig(**TaskConfig.LOGGING_CONFIG)
 
 class NmapTask:
 
-    def execute(self, port, zmapPaths):
-        port, protocol, protocolName = str(port).split("_")
-        nmapOutFiles = []
+    def execute(self, portStr, zmapPaths):
+        port, protocol, serverName = str(portStr).split("_")
+        nmapOutFiles, file_counter = [], 0
         for zmapPath in zmapPaths:
-            # zmapDir, zmapFileName = os.path.split(zmapPath)
-            nmapoutpath = zmapPath + "_nmap"
+            nmapBaseDir = os.path.split(os.path.split(zmapPath)[0])[0] + "/nmap/"
+            if not os.path.exists(nmapBaseDir):
+                os.makedirs(nmapBaseDir)
+            nmapoutpath = nmapBaseDir + str(portStr)
+            if file_counter == 0:
+                nmapoutpath = nmapoutpath + ".xml"
+            else:
+                nmapoutpath = nmapoutpath + "_" + str(file_counter) + ".xml"
+
             commName = ""
             if protocol.upper() == 'TCP':
-                # commName = "nmap -T5 -sV -Pn -iL [zmap输出的开放特定端口的IP列表] -p 端口号 -oX [输出路径] -sU"
                 commName = "nmap -T5 -sV -Pn -iL {0} -p {1} -oX {2} -sT".format(zmapPath, port, nmapoutpath)
             else:
                 commName = "nmap -T5 -sV -Pn -iL {0} -p {1} -oX {2} -sU".format(zmapPath, port, nmapoutpath)

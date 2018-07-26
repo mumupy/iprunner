@@ -21,10 +21,11 @@ class TaskConfig:
     TASK_INSTANCE_PORT_PREFIX = "task_instance_port_"
     TASK_INSTANCE_COUNTER_PREFIX = "task_instance_counter_"
     TASK_TEMP_DIR = "/data/taskinstance/"
+    TASK_BRIDGE="ens33"
 
     # redis配置信息
-    # REDIS_SERVER = "192.168.0.25"
-    REDIS_SERVER = "172.31.134.216"
+    REDIS_SERVER = "192.168.0.23"
+    # REDIS_SERVER = "172.31.134.216"
     REDIS_PORT = 6379
     # REDIS_AUTH = 123456
     REDIS_AUTH = None

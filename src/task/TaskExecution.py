@@ -32,9 +32,9 @@ class TaskExecution(threading.Thread):
         zmapPaths = self.zmapTask.execute(port, ipFilePaths)
         return zmapPaths
 
-    def mergeZmapTask(self, zmapPaths):
+    def mergeZmapTask(self, port, zmapPaths):
         """将多个zmap任务结果合并"""
-        mergeZmapPaths = self.zmapTask.mergeZmapTask(zmapPaths)
+        mergeZmapPaths = self.zmapTask.mergeZmapTask(port, zmapPaths)
         return mergeZmapPaths
 
     def executeNmapTask(self, port, zmapPaths):
@@ -46,7 +46,7 @@ class TaskExecution(threading.Thread):
             # 执行zmap任务
             zmapPaths = self.executeZmapTask(port, self.ipFilePaths)
             # 合并zmap文件
-            mergeZmapPaths = self.mergeZmapTask(zmapPaths)
+            mergeZmapPaths = self.mergeZmapTask(port, zmapPaths)
             # 执行nmap任务
             nmapPaths = self.executeNmapTask(port, mergeZmapPaths)
             logging.info(nmapPaths)
