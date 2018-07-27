@@ -31,8 +31,11 @@ class NmapTask:
             commname = None
             if protocol.upper() == 'TCP':
                 commname = "nmap -T5 -sV -Pn -iL {0} -p {1} -oX {2} -sT".format(zmapPath, port, nmapoutpath)
-            else:
+            elif protocol.upper() == "UDP":
                 commname = "nmap -T5 -sV -Pn -iL {0} -p {1} -oX {2} -sU".format(zmapPath, port, nmapoutpath)
+            else:
+                logging.info("unsupport protocol [ %s]" % protocol)
+                continue
             logging.info("执行nmap：" + commname)
             value = os.system(commname)
             logging.info("nmap执行结果: %s " % value)
