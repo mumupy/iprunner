@@ -58,17 +58,17 @@ def removeTask(taskInstanceId):
     logging.info("清理任务[ {0} ]".format(taskInstanceId))
 
 
-def main():
-    taskInstanceId = 102
+def main(taskInstanceId):
     ports = ["21_tcp_ftp", "1025_tcp_NFS-or-IIS", "3306_tcp_mysql", "10001_tcp_scp-config", "80_tcp_iot"]
     ips = ["119.23.141.41", "121.18.82.234"]
     file = open("../results.csv", "r")
     for line in file.readlines():
         ips.append(line.replace("\n", ""))
-    logging.info("开启测试数据 任务:{0} ports:{1} ips:{2}".format(taskInstanceId, ports, ips))
+    logging.info("添加测试数据 任务:{0} ports:{1} ips:{2}".format(taskInstanceId, ports, ips))
     startTask(taskInstanceId, ports, ips)
 
 
 if __name__ == "__main__":
-    #removeTask(100)
-    main()
+    removeTask(104)
+    main(105)
+    # logging.info("lovecws")

@@ -7,8 +7,8 @@
 import logging
 import threading
 
-from NmapTask import NmapTask
-from ZmapTask import ZmapTask
+from src.task.NmapTask import NmapTask
+from src.task.ZmapTask import ZmapTask
 from src.config.TaskConfig import TaskConfig
 
 logging.basicConfig(**TaskConfig.LOGGING_CONFIG)
@@ -17,12 +17,13 @@ logging.basicConfig(**TaskConfig.LOGGING_CONFIG)
 class TaskExecution(threading.Thread):
     """每个线程只处理其中几个端口号数据"""
 
-    def __init__(self, taskInfo, allocatePorts, ipFilePaths):
+    def __init__(self, taskInfo, allocatePorts, ipFilePaths, everyFileIpCount):
         super(TaskExecution, self).__init__()
         self.taskInfo = taskInfo
         self.taskInstanceId = taskInfo["taskInstanceId"]
         self.allocatePorts = allocatePorts
         self.ipFilePaths = ipFilePaths
+        self.everyFileIpCount = everyFileIpCount
         self.nmapTask = NmapTask()
         self.zmapTask = ZmapTask()
         logging.info("任务执行器-初始化任务执行器 %s" % self.taskInstanceId)
@@ -32,9 +33,9 @@ class TaskExecution(threading.Thread):
         zmapPaths = self.zmapTask.execute(port, ipFilePaths)
         return zmapPaths
 
-    def mergeZmapTask(self, port, zmapPaths):
+    def mergeZmapTask(self, port, zmapPaths, mergeCount):
         """将多个zmap任务结果合并"""
-        mergeZmapPaths = self.zmapTask.mergeZmapTask(port, zmapPaths)
+        mergeZmapPaths = self.zmapTask.mergeZmapTask(port, zmapPaths, mergeCount)
         return mergeZmapPaths
 
     def executeNmapTask(self, port, zmapPaths):
@@ -46,7 +47,7 @@ class TaskExecution(threading.Thread):
             # 执行zmap任务
             zmapPaths = self.executeZmapTask(port, self.ipFilePaths)
             # 合并zmap文件
-            mergeZmapPaths = self.mergeZmapTask(port, zmapPaths)
+            mergeZmapPaths = self.mergeZmapTask(port, zmapPaths, self.everyFileIpCount)
             # 执行nmap任务
             nmapPaths = self.executeNmapTask(port, mergeZmapPaths)
             logging.info(nmapPaths)

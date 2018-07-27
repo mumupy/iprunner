@@ -19,9 +19,10 @@ logging.basicConfig(**TaskConfig.LOGGING_CONFIG)
 class TaskAssign(threading.Thread):
     """任务执行器 每一个任务是一个线程"""
 
-    def __init__(self, taskManager, taskInfo, threadCount=3):
+    def __init__(self, taskManager, taskInfo, threadCount=3,everyFileIpCount=100):
         super(TaskAssign, self).__init__()
         self.threadCount = threadCount  # 每一个任务分配多少线程来并行处理
+        self.everyFileIpCount = everyFileIpCount  # 每一个文件保存的ip数量
         self.taskManager = taskManager
         self.taskInfo = taskInfo
         self.taskInstanceId = taskInfo["taskInstanceId"]
@@ -61,7 +62,7 @@ class TaskAssign(threading.Thread):
         logging.info("任务分配器-任务[ %s ] ip列表 %s" % (self.taskInstanceId, taskInstanceIps))
         return taskInstanceIps
 
-    def createIpFiles(self, ips, everyFileIpCount=1000):
+    def createIpFiles(self, ips, everyFileIpCount=100):
         """每一个任务只需要创建一个ip文件即可，其他的端口号可以复用这个IP列表文件"""
         taskInstanceDir = self.taskConfig.TASK_TEMP_DIR + self.taskInstanceId + "/"
         if not os.path.exists(taskInstanceDir):
@@ -77,14 +78,14 @@ class TaskAssign(threading.Thread):
                 file.close()
                 file_counter += 1
                 current_index = 0
-                newFileName = taskInstanceDir + "ip_" + str(file_counter)+ ".csv"
-                file = open(newFileName, "w")
-                ipFilePaths.append(newFileName)
+                ipFilePath = taskInstanceDir + "ip_" + str(file_counter)+ ".csv"
+                file = open(ipFilePath, "w")
+                ipFilePaths.append(ipFilePath)
             file.write(ip + "\n")
         file.close()
         # 去除最后一个空文件
         if current_index == 0:
-            ipFilePaths.remove(newFileName)
+            ipFilePaths.remove(ipFilePath)
         logging.info("任务分配器-任务[ %s ] 生成ip数据文件 %s" % (self.taskInstanceId, ipFilePaths))
         return ipFilePaths
 
@@ -102,7 +103,7 @@ class TaskAssign(threading.Thread):
         taskThreads = []
         for dictKey in thread_dict.keys():
             allocatePorts = thread_dict.get(dictKey)
-            taskExecution = TaskExecution(self.taskInfo, allocatePorts, ipFilePaths)
+            taskExecution = TaskExecution(self.taskInfo, allocatePorts, ipFilePaths,self.everyFileIpCount)
             taskExecution.start()
             taskThreads.append(taskExecution)
             logging.info("任务分配器-任务[ %s ] 执行子任务[ %d ] : 分配端口号：%s ip数据文件: %s" % (
@@ -121,7 +122,7 @@ class TaskAssign(threading.Thread):
                 logging.info("任务分配器,任务 [ %s ] ，未分配端口号结束。" % self.taskInstanceId)
             else:
                 ips = self.getTaskIps()
-                ipFilePaths = self.createIpFiles(ips, 1000)
+                ipFilePaths = self.createIpFiles(ips, self.everyFileIpCount)
                 self.executeTask(ports, ipFilePaths, self.threadCount)
         except StandardError as error:
             result = False

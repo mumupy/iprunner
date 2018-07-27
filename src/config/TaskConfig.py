@@ -6,12 +6,11 @@
 # @Desc    : 任务配置信息
 import logging
 
-
 class TaskConfig:
     LOGGING_CONFIG = {
         # "filename": "config.log",
         # "filemode": "w",
-        "format": "%(asctime)s-%(name)s-%(levelname)s-%(message)s",
+        "format": "%(asctime)s|%(process)d|%(thread)d|%(filename)s[%(funcName)s:%(lineno)d]|%(levelname)s|%(message)s",
         "level": logging.INFO
     }
 

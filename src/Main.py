@@ -11,7 +11,7 @@ config.initInstallComponent()
 
 import logging
 from src.config.TaskConfig import TaskConfig
-from src.task.TaskManager import TaskManager
+from src.core.TaskManager import TaskManager
 
 logging.basicConfig(**TaskConfig.LOGGING_CONFIG)
 

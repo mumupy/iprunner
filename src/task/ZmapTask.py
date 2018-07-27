@@ -54,10 +54,12 @@ class ZmapTask:
             outPaths = []
         return outPaths
 
-    def mergeZmapTask(self, portStr, zmapPaths, mergeCount=1000):
+    def mergeZmapTask(self, portStr, zmapPaths, mergeCount):
+        """将多个zmap结果文件合并成一个文件"""
+
         if len(zmapPaths) <= 1:
             return zmapPaths
-        """将多个zmap结果文件合并成一个文件"""
+
         baseZmapDir, ipList, current_index, file_counter, merge_files = None, [], 0, 0, []
         for zmapPath in zmapPaths:
             zmap_dir, zmap_filename = os.path.split(zmapPath)
@@ -81,10 +83,12 @@ class ZmapTask:
                 mergeZmapFile.close()
                 file_counter += 1
                 current_index = 0
-                newMergeFileName = baseZmapDir + portStr + "_m_" + file_counter + ".csv"
+                newMergeFileName = baseZmapDir + portStr + "_m_" + str(file_counter) + ".csv"
                 merge_files.append(newMergeFileName)
                 mergeZmapFile = open(newMergeFileName, "w")
-            mergeZmapFile.write(ip + "\n")
+            if not ip.endswith("\n"):
+                ip = ip + "\n"
+            mergeZmapFile.write(ip)
         mergeZmapFile.close()
         # 去除最后一个空文件
         if current_index == 0:

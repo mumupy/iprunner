@@ -28,13 +28,18 @@ class NmapTask:
             else:
                 nmapoutpath = nmapoutpath + "_" + str(file_counter) + ".xml"
 
-            commName = ""
+            commname = None
             if protocol.upper() == 'TCP':
-                commName = "nmap -T5 -sV -Pn -iL {0} -p {1} -oX {2} -sT".format(zmapPath, port, nmapoutpath)
+                commname = "nmap -T5 -sV -Pn -iL {0} -p {1} -oX {2} -sT".format(zmapPath, port, nmapoutpath)
             else:
-                commName = "nmap -T5 -sV -Pn -iL {0} -p {1} -oX {2} -sU".format(zmapPath, port, nmapoutpath)
-            logging.info("执行nmap：" + commName)
-            value = os.system(commName)
+                commname = "nmap -T5 -sV -Pn -iL {0} -p {1} -oX {2} -sU".format(zmapPath, port, nmapoutpath)
+            logging.info("执行nmap：" + commname)
+            value = os.system(commname)
             logging.info("nmap执行结果: %s " % value)
             nmapOutFiles.append(nmapoutpath)
+            file_counter += 1
         return nmapOutFiles
+
+    def parseNmapXmlResult(self, portStr, nmapOutFiles):
+        """解析nmap的xml返回结果"""
+        pass
