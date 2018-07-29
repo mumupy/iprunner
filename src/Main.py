@@ -4,12 +4,10 @@
 # @Author  : ganliang
 # @File    : Main.py
 # @Desc    : 程序入口
-
+import logging
 import Config as config
-
 config.initInstallComponent()
 
-import logging
 from src.config.TaskConfig import TaskConfig
 from src.core.TaskManager import TaskManager
 
@@ -17,7 +15,7 @@ logging.basicConfig(**TaskConfig.LOGGING_CONFIG)
 
 
 def main():
-    taskManager = TaskManager(3, 3)
+    taskManager = TaskManager(runingTaskCount=3, taskScanInterval=60, everyTaskThreadCount=3, everyFileIpCount=100)
     taskManager.executeTaskManager()
 
 

@@ -5,14 +5,13 @@
 # @File    : Test.py
 # @Desc    : 测试程序
 
-import Config as config
-
-config.initInstallComponent()
-
 import logging
+import Config as config
+config.initInstallComponent()
 from src.config.RedisConfig import RedisConfig
 from src.config.TaskConfig import TaskConfig
 from src.util.IPUtil import IPUtil
+from src.util.ProtocolUtil import loadProtocol
 
 
 def startTask(taskInstanceId, taskPorts=None, taskIps=None):
@@ -59,8 +58,8 @@ def removeTask(taskInstanceId):
 
 
 def main(taskInstanceId):
-    ports = ["21_tcp_ftp", "1025_tcp_NFS-or-IIS", "3306_tcp_mysql", "10001_tcp_scp-config", "80_tcp_iot"]
-    ips = ["119.23.141.41", "121.18.82.234"]
+    ports = loadProtocol("../protocol.csv", "_")
+    ips = []
     file = open("../results.csv", "r")
     for line in file.readlines():
         ips.append(line.replace("\n", ""))
@@ -69,6 +68,7 @@ def main(taskInstanceId):
 
 
 if __name__ == "__main__":
-    removeTask(104)
-    main(105)
+     # removeTask(113)
+     main(114)
     # logging.info("lovecws")
+

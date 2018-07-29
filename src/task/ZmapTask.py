@@ -9,24 +9,26 @@ import logging
 import os
 
 from src.config.TaskConfig import TaskConfig
-from src.util.FileUtil import writeFile
 
 logging.basicConfig(**TaskConfig.LOGGING_CONFIG)
 
 
 class ZmapTask:
 
+    def __init__(self, taskInstanceId):
+        self.taskInstanceId = taskInstanceId
+        self.base_dir = TaskConfig.TASK_TEMP_DIR + self.taskInstanceId
+
     def execute(self, portStr, ipFilePaths):
         """执行zmap任务"""
-        try:
-            port, protocol, serverName = str(portStr).split("_")
-            outPaths, file_counter = [], 0
-            for ipFilePath in ipFilePaths:
-                ipFileDir, ipFileName = os.path.split(ipFilePath)
-                zmapDir = ipFileDir + "/zmap/"
 
-                if not os.path.exists(zmapDir):
-                    os.makedirs(zmapDir)
+        port, protocol, serverName = str(portStr).split("_")
+        outPaths, file_counter, zmapDir = [], 0, self.base_dir + "/zmap/"
+        if not os.path.exists(zmapDir):
+            os.makedirs(zmapDir)
+
+        for ipFilePath in ipFilePaths:
+            try:
                 if file_counter == 0:
                     outpath = zmapDir + portStr + ".csv"
                 else:
@@ -46,24 +48,28 @@ class ZmapTask:
 
                 logging.info("执行zmap：" + command)
                 value = os.system(command)
-                # writeFile(outpath, list(open(ipFilePath, "r").readlines()))
                 logging.info("zmap执行结果 %s" % value)
-                outPaths.append(outpath)
-        except Exception as ex:
-            logging.error(ex)
-            outPaths = []
+                # 删除空文件
+                if os.path.exists(outpath):
+                    if os.path.getsize(outpath) == 0:
+                        os.remove(outpath)
+                    else:
+                        outPaths.append(outpath)
+            except Exception as ex:
+                logging.error(ex)
         return outPaths
 
     def mergeZmapTask(self, portStr, zmapPaths, mergeCount):
         """将多个zmap结果文件合并成一个文件"""
 
+        # 待拆分文件小于1 则不拆分
         if len(zmapPaths) <= 1:
             return zmapPaths
 
-        baseZmapDir, ipList, current_index, file_counter, merge_files = None, [], 0, 0, []
+        ipList, current_index, file_counter, merge_files, baseMZmapDir = [], 0, 0, [], self.base_dir + "/mzmap/"
+        if not os.path.exists(baseMZmapDir):
+            os.makedirs(baseMZmapDir)
         for zmapPath in zmapPaths:
-            zmap_dir, zmap_filename = os.path.split(zmapPath)
-            baseZmapDir = zmap_dir + "/"
             if not os.path.exists(zmapPath):
                 continue
             file = open(zmapPath, "r")
@@ -74,7 +80,7 @@ class ZmapTask:
             return []
 
         # 合并zmap文件列表
-        newMergeFileName = baseZmapDir + portStr + "_m.csv"
+        newMergeFileName = baseMZmapDir + portStr + ".csv"
         merge_files.append(newMergeFileName)
         mergeZmapFile = open(newMergeFileName, "w")
         for ip in ipList:
@@ -83,7 +89,7 @@ class ZmapTask:
                 mergeZmapFile.close()
                 file_counter += 1
                 current_index = 0
-                newMergeFileName = baseZmapDir + portStr + "_m_" + str(file_counter) + ".csv"
+                newMergeFileName = baseMZmapDir + portStr + str(file_counter) + ".csv"
                 merge_files.append(newMergeFileName)
                 mergeZmapFile = open(newMergeFileName, "w")
             if not ip.endswith("\n"):

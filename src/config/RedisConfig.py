@@ -28,3 +28,10 @@ class RedisConfig:
     def close(self, connection):
         """将redis的链接返回到连接池中"""
         connection.connection_pool.disconnect()
+
+
+if __name__ == "__main__":
+    redisConfig = RedisConfig()
+    connection = redisConfig.connection()
+    value=connection.get("task_instance_counter_112")
+    print(value)

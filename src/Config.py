@@ -5,9 +5,9 @@
 # @File    : Config.py
 # @Desc    : 项目中使用到的组件管理
 
-import logging,os,sys
+import logging, os, sys
 
-current_project = os.path.split(os.getcwd())[0]
+current_project = os.path.dirname(os.getcwd())
 sys.path.append(current_project)
 from src.config.TaskConfig import TaskConfig
 
@@ -23,6 +23,7 @@ def initInstallComponent():
     logging.info("初始化组件.......")
     os.system("pip install redis")
     os.system("pip install elasticsearch")
+    os.system("pip install pypyodbc") #访问access数据库
 
 
 if __name__ == "__main__":

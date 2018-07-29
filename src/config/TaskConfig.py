@@ -6,6 +6,7 @@
 # @Desc    : 任务配置信息
 import logging
 
+
 class TaskConfig:
     LOGGING_CONFIG = {
         # "filename": "config.log",
@@ -20,7 +21,7 @@ class TaskConfig:
     TASK_INSTANCE_PORT_PREFIX = "task_instance_port_"
     TASK_INSTANCE_COUNTER_PREFIX = "task_instance_counter_"
     TASK_TEMP_DIR = "/data/taskinstance/"
-    TASK_BRIDGE="ens33"
+    TASK_BRIDGE = "ens33"
 
     # redis配置信息
     REDIS_SERVER = "192.168.0.23"
@@ -29,3 +30,8 @@ class TaskConfig:
     # REDIS_AUTH = 123456
     REDIS_AUTH = None
     REDIS_DB = 1
+
+
+if __name__ == "__main__":
+    # initInstallComponent()
+    pass

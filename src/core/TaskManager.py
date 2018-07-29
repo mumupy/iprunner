@@ -19,9 +19,18 @@ logging.basicConfig(**TaskConfig.LOGGING_CONFIG)
 class TaskManager:
     """任务管理器"""
 
-    def __init__(self, runingTaskCount=1, everyTaskThreadCount=3):
+    def __init__(self, runingTaskCount=1, taskScanInterval=60, everyTaskThreadCount=3, everyFileIpCount=100):
+        """
+            初始化任务管理器
+            runingTaskCount 任务管理器最多可运行的任务数量 默认1
+            taskScanInterval 任务扫描间隔 默认60秒
+            everyTaskThreadCount 每一个任务开启多少个子线程来运行任务 默认3个
+            everyFileIpCount ip文件拆分 将大的ip数据拆分成各个小的ip数据文件 默认100
+        """
         self.runingTaskCount = runingTaskCount
+        self.taskScanInterval = taskScanInterval
         self.everyTaskThreadCount = everyTaskThreadCount
+        self.everyFileIpCount = everyFileIpCount
         self.taskContainer = {}  # 任务的容器
         self.taskThreads = []  # 没执行一个任务 保存线程
         logging.info("任务管理器初始化完毕，最多可同时运行的任务数量：[ %s ] 每个任务的线程数量: [ %s ]" % (self.runingTaskCount, everyTaskThreadCount))
@@ -30,25 +39,25 @@ class TaskManager:
         """完成任务的分配"""
         if taskAssign in self.taskThreads:
             connection = RedisConfig().connection()
-            self.taskThreads.remove(taskAssign)
-            self.taskContainer.pop(taskAssign.taskInstanceId)
-
             ports = taskAssign.taskInfo["ports"]
+            finish_tasklength, taskInstanceId = len(ports), str(taskAssign.taskInstanceId)
             if result:
-                logging.info("任务管理器-任务完成 [ %s ]" % taskAssign.taskInstanceId)
-
+                logging.info("任务管理器-任务完成 [ %s ] 处理端口数量 [ %s ]" % (taskInstanceId, finish_tasklength))
                 # 判断任务是否全部完成
-                counter = connection.decr(TaskConfig.TASK_INSTANCE_COUNTER_PREFIX + str(taskAssign.taskInstanceId),
-                                          len(ports))
+                counter = connection.decr(TaskConfig.TASK_INSTANCE_COUNTER_PREFIX + taskInstanceId, finish_tasklength)
+                logging.info("任务管理器-任务完成进度 任务:{0} 容器完成:{1} 剩余:{2} ]".format(taskInstanceId, finish_tasklength, counter))
                 if counter <= 0:
-                    connection.lrem(TaskConfig.TASK_INSTANCE_QUEUE, 0, taskAssign.taskInstanceId)
-                    logging.info("任务管理器-任务 [ %s ] 全部完成" % taskAssign.taskInstanceId)
+                    connection.lrem(TaskConfig.TASK_INSTANCE_QUEUE, 0, taskInstanceId)
+                    logging.info("任务管理器-任务 [ %s ] 全部完成" % taskInstanceId)
             else:
-                if len(ports) > 0:
-                    connection.lpush(TaskConfig.TASK_INSTANCE_PORT_PREFIX + str(taskAssign.taskInstanceId), *ports)
+                if finish_tasklength > 0:
+                    connection.lpush(TaskConfig.TASK_INSTANCE_PORT_PREFIX + taskInstanceId, *ports)
                     logging.info("任务管理器-任务出错，将端口列表数据回滚")
                 else:
                     logging.info("任务管理器-任务出错，端口数据不存在")
+            
+            self.taskThreads.remove(taskAssign)
+            self.taskContainer.pop(taskAssign.taskInstanceId)
         else:
             logging.info("任务管理器-任务不存在 [ %s ]" % taskAssign.taskInstanceId)
 
@@ -104,7 +113,7 @@ class TaskManager:
         # 循环扫描任务
         while True:
             self.lookupTask()
-            time.sleep(60)
+            time.sleep(self.taskScanInterval)
 
             # 如果任务管理器任务已经满载 则停止接收任务 等待任务完成
             if len(self.taskThreads) == self.runingTaskCount:
