@@ -131,6 +131,17 @@ def dockerInstall():
             logging.warn("unsupport system!")
 
 
+def dockerKill():
+    """启动新的容器之前 先关闭原先的容器"""
+    DOCKER_PS_COMMAND = "docker ps|grep dockercompose|awk -F " " '{print $1}'"
+    logging.info(DOCKER_PS_COMMAND)
+    docker_pss = os.system("docker ps|grep dockercompose|awk -F \" \" '{print $1}'")
+    for docker_psid in docker_pss:
+        DOCKER_KILL_COMMAND = "docker kill {0}".format(docker_psid)
+        logging.info(DOCKER_KILL_COMMAND)
+        os.system(DOCKER_KILL_COMMAND)
+
+
 if __name__ == "__main__":
     # dockerInstall()
 
